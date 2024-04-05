@@ -4,16 +4,17 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Document loaded');
 
-    windowResizeHandler();
+    adjustImageAndListItemSize();
+    // windowResizeHandler();
 
     // Event listener for adjusting scroll position and event listeners, when the window is resized
-    window.addEventListener('resize', windowResizeHandler);
+    window.addEventListener('resize', adjustImageAndListItemSize);
 
 });
 
 // Get the carousel and all the carousel items
-const carousel = document.querySelector('.slider-container');
-const list = document.querySelector('.event-item-list');
+let carousel = document.querySelector('.slider-container');
+let list = document.querySelector('.event-item-list');
 let carouselItems = document.querySelectorAll('.carousel-item');
 let itemWidth = carouselItems[0].getBoundingClientRect().width;
 
@@ -25,16 +26,44 @@ const nextButton = document.getElementById('next');
 let scrollPosition = itemWidth;
 carousel.scrollLeft = scrollPosition;
 
+function adjustImageAndListItemSize() {
+    // Get the list items
+    carouselItems = document.querySelectorAll('.carousel-item');
+
+    // Calculate the width of the window and the width of the carousel
+    let windowWidth = window.innerWidth;
+    let space = windowWidth * 0.03; // 3% of the window width
+    let carouselWidth = Math.floor((windowWidth - 2 * space) / 12) * 12;
+
+    // Set the width and margin of the carousel
+    carousel.style.width = `${carouselWidth}px`;
+    carousel.style.marginLeft = `${space}px`;
+    carousel.style.marginRight = `${space}px`;
+
+    if (windowWidth < 768) 
+        itemWidth = Math.round(carouselWidth / 2);
+    else if (windowWidth < 1024) 
+        itemWidth = Math.round(carouselWidth / 4);
+    else 
+        itemWidth = Math.round(carouselWidth / 6); // Change this to the number of items you want to display at a time
+
+    // Set the width of the images and list items
+    carouselItems.forEach(item => {
+        item.style.width = `${itemWidth}px`;
+    });
+
+    adjustScroll();
+}
+
 //Function that handles resizing of the window
 function windowResizeHandler() {
-    console.log('Window resized');
     adjustScroll();
     updateEventListeners();
 }
 
 // Function to adjust scroll position
 function adjustScroll() {
-    itemWidth = carouselItems[0].getBoundingClientRect().width;
+    itemWidth = carouselItems[0].clientWidth;
 
     // Checks if itemWidth is different from scrollPosition (if it is, it means the window was resized)
     if (itemWidth !== scrollPosition) {
