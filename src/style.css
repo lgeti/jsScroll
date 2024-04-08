@@ -20,7 +20,7 @@ body {
     align-items: center;
     justify-content: center;
 
-    width: 100%;
+    width: 90%;
 }
 
 .slider-container {
@@ -29,7 +29,6 @@ body {
     align-items: center;
     justify-content: center;
 
-    width: 90%;
     overflow: hidden;
 }
 
@@ -94,7 +93,7 @@ img {
     .arrows {
         display: block;
         position: absolute;
-        
+
         z-index: 1;
         top: 50%;
         transform: translateY(-50%);
