@@ -62,7 +62,7 @@ body {
 
   @media (min-width: 1024px) {
     .event-item-list {
-      grid-template-columns: repeat(12, 16.66666666666666666666666666666666666666666666666666666666666667%); 
+      grid-template-columns: repeat(12, calc(100% / 6)); 
     }
   } 
 
