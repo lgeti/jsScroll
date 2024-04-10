@@ -1,6 +1,3 @@
-* {
-   box-sizing: border-box;
-}
 
 body {
     background: blue; 
@@ -11,16 +8,26 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    height: 100vh;
+    width: 100vw;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  }
+}
 
-.outer-container {
+.grid {
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+}
 
-    width: 90%;
+.grid-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.outer-slider-container {
+    overflow: hidden;
 }
 
 .slider-container {
@@ -29,7 +36,34 @@ body {
     align-items: center;
     justify-content: center;
 
-    overflow: hidden;
+    will-change: transform;
+}
+
+.arrows {
+    display: none;
+}
+
+.event-item-list {
+    display: grid;
+    grid-template-columns: repeat(8, 50%); 
+
+    width: 100%;
+
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+    order: 1;
+}
+
+
+.carousel-item {
+    position: relative;
+    padding: 0;
+
+    height: 100%;
+    width: 100%;
 }
 
 .event-item-list {
@@ -42,18 +76,13 @@ body {
     list-style: none;
 }
 
-.carousel-item {
-    height: 100%;
-    width: 100%;
-}
-
 img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-@media (min-width: 768px) and (max-width: 1023px) { 
+@media (min-width: 640px) and (max-width: 1023px) { 
     .event-item-list {
         grid-template-columns: repeat(12, 25%); 
     }
@@ -61,13 +90,13 @@ img {
     .arrows {
         display: block;
         position: absolute;
-
-        z-index: 1;
+   
+        z-index: 5;
         top: 50%;
         transform: translateY(-50%);
 
         cursor: pointer;
-        font-size: 3.5rem;
+        font-size: 4rem;
         color: rgb(37, 150, 190);
     }
 
@@ -77,11 +106,11 @@ img {
     }
 
     .left {
-        left: -1%;
+        left: 2%;
     }
 
     .right {
-        right: -1%;
+        right: 2%;
     }
 }
 
@@ -93,8 +122,8 @@ img {
     .arrows {
         display: block;
         position: absolute;
-
-        z-index: 1;
+   
+        z-index: 5;
         top: 50%;
         transform: translateY(-50%);
 
@@ -109,13 +138,10 @@ img {
     }
 
     .left {
-        left: -1%;
+        left: 2%;
     }
 
     .right {
-        right: -1%;
+        right: 2%;
     }
-} 
-
-
-
+}

@@ -1,6 +1,3 @@
-// JavaScript for a basic endless carousel
-
-// Event handler for when the document is loaded
 $(document).ready(function() {
     let carousel = document.querySelector('.slider-container');
     let list = document.querySelector('.event-item-list');
@@ -8,12 +5,13 @@ $(document).ready(function() {
 
     let prevButton = document.getElementById('prev');
     let nextButton = document.getElementById('next');
+    let isMoving = false;
 
-    let itemWidth = items[0].clientWidth;
-    let scrollPosition = itemWidth;
+    let itemWidth = items[0].getBoundingClientRect().width;
+    let scrollPosition = -itemWidth;
 
-    // Move the list one column to the left
-    // carousel.scrollLeft = scrollPosition;
+    carousel.style.transition = '';
+    carousel.style.transform = `translateX(${scrollPosition}px)`;
 
     adjustImageAndListItemSize();
 
@@ -21,7 +19,8 @@ $(document).ready(function() {
     window.addEventListener('resize', adjustImageAndListItemSize);
 
     // Automatic rotation
-    let carouselInterval = setInterval(autoMoveCarousel, 3000);
+    let carouselInterval = setInterval(autoMoveCarousel, 2000);
+    let carouselDirection = "right";
 
     // Swipe functionality variables
     let startX;
@@ -29,25 +28,34 @@ $(document).ready(function() {
     let threshold = 100; // Minimum swipe distance, adjust as needed
 
     function autoMoveCarousel() {
-        if (window.innerWidth < 641) {
-            moveRightMobile();
-        } else {
-            moveRightDesktop();
-        }
+        if (carouselDirection === "right")
+            if (window.innerWidth < 641) {
+                moveRightMobile();
+            } else {
+                moveRightDesktop();
+            }
+        else 
+            if (window.innerWidth < 641) {
+                moveLeftMobile();
+            } else {
+                moveLeftDesktop();
+            }
     }
 
     function adjustImageAndListItemSize() {
         // Get the list items
         carouselItems = document.querySelectorAll('.carousel-item');
+        let outerContainer = document.querySelector('.outer-slider-container');
 
         // Calculate the width of the window and the width of the carousel
-        let outerContainerWidth = document.querySelector('.outer-container').clientWidth;
+        let outerContainerWidth = document.querySelector('.grid-container').clientWidth;
         let carouselWidth = Math.floor(outerContainerWidth / 12) * 12;
 
         // Set the width and margin of the carousel
         carousel.style.width = `${carouselWidth}px`;
+        outerContainer.style.width = `${carouselWidth}px`;
 
-        if (window.innerWidth < 769) 
+        if (window.innerWidth < 641) 
             itemWidth = Math.round(carouselWidth / 2);
         else if (window.innerWidth < 1024) 
             itemWidth = Math.round(carouselWidth / 4);
@@ -70,14 +78,16 @@ $(document).ready(function() {
 
     // Function to adjust scroll position
     function adjustScroll() {
-        itemWidth = carouselItems[0].clientWidth;
-
+        items = document.querySelectorAll('.carousel-item');
+        // itemWidth = items[0].getBoundingClientRect().width;
+        itemWidth = items[0].getBoundingClientRect().width;
         // Checks if itemWidth is different from scrollPosition (if it is, it means the window was resized)
-        if (itemWidth !== scrollPosition) {
-            scrollPosition -= scrollPosition - itemWidth;
+        if (Math.abs(scrollPosition) !== Math.abs(itemWidth)) {
+            scrollPosition += scrollPosition + itemWidth;
             // Update the scroll position
-            carousel.scrollLeft = scrollPosition;
-        }
+            carousel.style.transition = '';
+            carousel.style.transform = `translateX(${scrollPosition}px)`;
+        } 
     }
 
     // Function to update the event listeners for the arrows
@@ -91,13 +101,13 @@ $(document).ready(function() {
         prevButton.removeEventListener('click', moveLeftDesktop);
         nextButton.removeEventListener('click', moveRightDesktop);
 
-        if (window.innerWidth < 769) {
+        if (window.innerWidth < 641) {
             // Setup Mobile EventListeners
-            carousel = document.querySelector('.grid-container');
+            carousel = document.querySelector('.slider-container');
             carousel.addEventListener('touchstart', handleTouchEvent)
             carousel.addEventListener('touchmove', handleTouchEvent);
             carousel.addEventListener('touchend', handleTouchEvent);
-        } else { //Sets up tablet/desktop EventListeners
+        } else { //Sets up table/desktop EventListeners
             prevButton.addEventListener('click', moveLeftDesktop);
             nextButton.addEventListener('click', moveRightDesktop);
         }
@@ -105,130 +115,180 @@ $(document).ready(function() {
 
     // Function to move the carousel to the right
     function moveRightDesktop() {
+        if (isMoving) return
+
+        isMoving = true;
+
         // Update the list of carousel items and the item width
-        carouselItems = document.querySelectorAll('.carousel-item');
-        itemWidth = carouselItems[0].getBoundingClientRect().width;
+        items = document.querySelectorAll('.carousel-item');
+        itemWidth = items[0].getBoundingClientRect().width;
 
-        // Make the carousel stay in place when manipulating the list
-        scrollPosition -= itemWidth;
-        carousel.scrollLeft = scrollPosition;
-        
-        let item1 = carouselItems[0];
-        let item13 = carouselItems[12];
+        let item1 = items[0];
+        let item13 = items[12];
         //Puts the first item on the 12th position
-        list.insertBefore(item1, carouselItems[11].nextSibling);
+        list.insertBefore(item1, items[11].nextSibling);
         //Puts 13th item on the 24th position
-        list.insertBefore(item13, carouselItems[23].nextSibling);
+        list.insertBefore(item13, items[23].nextSibling);
 
-
-        
-        // Calculate the new scroll position
+        // Adjust the lists so they dont move when moving items
+        // Temporarily disable the transition
+        carousel.style.transition = 'none';
         scrollPosition += itemWidth;
-        
-        // Scroll to the new position with a smooth effect
-        carousel.scrollTo({
-            left: scrollPosition,
-            behavior: 'smooth'
-        });
+        carousel.style.transform = `translateX(${scrollPosition}px)`
 
+        scrollPosition -= itemWidth;
+
+        // Force a reflow (this is needed to make the transition work correctly)
+        void carousel.offsetWidth;
+
+        // Re-enable the transition
+        carousel.style.transition = 'transform 0.5s ease-in-out';
+        carousel.style.transform = `translateX(${scrollPosition}px)`;
+
+        setTimeout(() => {
+            isMoving = false;
+        }, 500);
+        
+        // Resets carousel timer and change carousel direction
+        carouselDirection = "right";
         clearInterval(carouselInterval);
-        carouselInterval = setInterval(autoMoveCarousel, 3000);
+        carouselInterval = setInterval(autoMoveCarousel, 2000);
     }
 
     // Function to move the carousel to the left    
     function moveLeftDesktop() {
-        // Update the list of carousel items and the item width
-        carouselItems = document.querySelectorAll('.carousel-item');
-        itemWidth = carouselItems[0].getBoundingClientRect().width;
-        
-        // Make the carousel stay in place when manipulating the list
-        scrollPosition += itemWidth;
-        carousel.scrollLeft = scrollPosition;
-        
-        let item12 = carouselItems[11];
-        let item24 = carouselItems[23];
-        //Puts 12th item on the first position
-        list.insertBefore(item12, carouselItems[0]);
-        //Puts 24th item on the 13th position
-        list.insertBefore(item24, carouselItems[12]);
-        
-        // Calculate the new scroll position
-        scrollPosition -= itemWidth;
-        
-        // Scroll to the new position with a smooth effect
-        carousel.scrollTo({
-            left: scrollPosition,
-            behavior: 'smooth'
-        });
+        if (isMoving) return
 
+        isMoving = true;
+
+        // Update the list of carousel items and the item width
+        items = document.querySelectorAll('.carousel-item');
+        itemWidth = items[0].getBoundingClientRect().width;
+        
+        let item12 = items[11];
+        let item24 = items[23];
+        //Puts 12th item on the first position
+        list.insertBefore(item12, items[0]);
+        //Puts 24th item on the 13th position
+        list.insertBefore(item24, items[12]);
+        
+        // Adjust the lists so they dont move when moving items
+        // Temporarily disable the transition
+        carousel.style.transition = 'none';
+        scrollPosition -= itemWidth;
+        carousel.style.transform = `translateX(${scrollPosition}px)`
+
+        scrollPosition += itemWidth;
+
+        // Force a reflow (this is needed to make the transition work correctly)
+        void carousel.offsetWidth;
+
+        // Re-enable the transition
+        carousel.style.transition = 'transform 0.5s ease-in-out';
+        carousel.style.transform = `translateX(${scrollPosition}px)`;
+
+
+        setTimeout(() => {
+            isMoving = false;
+        }, 500);
+
+        // Resets carousel timer and change carousel direction
+        carouselDirection = "left";
         clearInterval(carouselInterval);
-        carouselInterval = setInterval(autoMoveCarousel, 3000);
+        carouselInterval = setInterval(autoMoveCarousel, 2000);
     }
 
     // Function to move the carousel to the right for mobile
     function moveRightMobile() {
-        // Update the list of carousel items and the item width
-        carouselItems = document.querySelectorAll('.carousel-item');
-        itemWidth = carouselItems[0].getBoundingClientRect().width;
+        if (isMoving) return
 
-        // Make the carousel stay in place when manipulating the list
-        scrollPosition -= itemWidth;
-        carousel.scrollLeft = scrollPosition;
-        
-        let item1 = carouselItems[0];
-        let item9 = carouselItems[8];
-        let item17 = carouselItems[16];
+        isMoving = true;
+
+        // Update the list of carousel items and the item width
+        items = document.querySelectorAll('.carousel-item');
+        itemWidth = items[0].getBoundingClientRect().width;
+
+        let item1 = items[0];
+        let item9 = items[8];
+        let item17 = items[16];
         //Puts the first item on the 8th position
-        list.insertBefore(item1, carouselItems[7].nextSibling);
+        list.insertBefore(item1, items[7].nextSibling);
         //Puts 9th item on the 16th position
-        list.insertBefore(item9, carouselItems[15].nextSibling);
+        list.insertBefore(item9, items[15].nextSibling);
         //Puts 17th item on the 24th position
-        list.insertBefore(item17, carouselItems[23].nextSibling);
+        list.insertBefore(item17, items[23].nextSibling);
+
+        // Adjust the lists so they dont move when moving items
+        // Temporarily disable the transition
+        carousel.style.transition = 'none';
+        scrollPosition += itemWidth;
+        carousel.style.transform = `translateX(${scrollPosition}px)`
 
         // Calculate the new scroll position
-        scrollPosition += itemWidth;
-        
-        // Scroll to the new position with a smooth effect
-        carousel.scrollTo({
-            left: scrollPosition,
-            behavior: 'smooth'
-        });
+        scrollPosition -= itemWidth;
 
+        // Force a reflow (this is needed to make the transition work correctly)
+        void carousel.offsetWidth;
+
+        // Re-enable the transition
+        carousel.style.transition = 'transform 0.5s ease-in-out';
+        carousel.style.transform = `translateX(${scrollPosition}px)`;
+
+        setTimeout(() => {
+            isMoving = false;
+        }, 500);
+
+        // Resets carousel timer and change carousel direction
+        carouselDirection = "right";
         clearInterval(carouselInterval);
-        carouselInterval = setInterval(autoMoveCarousel, 3000);
+        carouselInterval = setInterval(autoMoveCarousel, 2000);
     }
 
     // Function to move the carousel to the left for mobile
     function moveLeftMobile() {
-        // Update the list of carousel items and the item width
-        carouselItems = document.querySelectorAll('.carousel-item');
-        itemWidth = carouselItems[0].getBoundingClientRect().width;
-        
-        // Make the carousel stay in place when manipulating the list
-        scrollPosition += itemWidth;
-        carousel.scrollLeft = scrollPosition;
-        
-        let item8 = carouselItems[7];
-        let item16 = carouselItems[15];
-        let item24 = carouselItems[23];
-        //Puts 8th item on the first position
-        list.insertBefore(item8, carouselItems[0]);
-        //Puts 16th item on the 9th position
-        list.insertBefore(item16, carouselItems[8]);
-        //Puts 24th item on the 17th position
-        list.insertBefore(item24, carouselItems[16]);
-        
-        // Calculate the new scroll position
-        scrollPosition -= itemWidth;
-        
-        // Scroll to the new position with a smooth effect
-        carousel.scrollTo({
-            left: scrollPosition,
-            behavior: 'smooth'
-        });
+        if (isMoving) return
 
+        isMoving = true;
+        
+        // Update the list of carousel items and the item width
+        items = document.querySelectorAll('.carousel-item');
+        itemWidth = items[0].getBoundingClientRect().width;
+        
+        let item8 = items[7];
+        let item16 = items[15];
+        let item24 = items[23];
+        //Puts 8th item on the first position
+        list.insertBefore(item8, items[0]);
+        //Puts 16th item on the 9th position
+        list.insertBefore(item16, items[8]);
+        //Puts 24th item on the 17th position
+        list.insertBefore(item24, items[16]);
+        
+
+        // Adjust the lists so they dont move when moving items
+        // Temporarily disable the transition
+        carousel.style.transition = 'none';
+        scrollPosition -= itemWidth;
+        carousel.style.transform = `translateX(${scrollPosition}px)`
+
+        // Calculate the new scroll position
+        scrollPosition += itemWidth;
+
+        // Force a reflow (this is needed to make the transition work correctly)
+        void carousel.offsetWidth;
+
+        // Re-enable the transition
+        carousel.style.transition = 'transform 0.5s ease-in-out';
+        carousel.style.transform = `translateX(${scrollPosition}px)`;
+
+        setTimeout(() => {
+            isMoving = false;
+        }, 500);
+
+        // Resets carousel timer and change carousel direction
+        carouselDirection = "left";
         clearInterval(carouselInterval);
-        carouselInterval = setInterval(autoMoveCarousel, 3000);
+        carouselInterval = setInterval(autoMoveCarousel, 2000);
     }
 
     function handleTouchEvent(e) {
@@ -242,12 +302,13 @@ $(document).ready(function() {
             case 'touchend':
                 if (Math.abs(startX - touchEndX) > threshold) {
                     if (startX > touchEndX) {
-                        moveRightDesktop();
+                        moveRightMobile();
                     } else {
-                        moveLeftDesktop();
+                        moveLeftMobile();
                     }
                 }
                 break;
         }
     }
+
 });
